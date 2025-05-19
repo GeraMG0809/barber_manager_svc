@@ -1,0 +1,127 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "5001:5001"
+    environment:
+      - DB_HOST=mysql-auth
+      - DB_USER=root
+      - DB_PASSWORD=secret
+      - JWT_SECRET_KEY=your-secret-key
+    depends_on:
+      - mysql-auth
+    user: "1000:1000"
+    volumes:
+      - ./auth-service:/app
+      - /app/__pycache__
+
+  appointments-service:
+    build: ./appointments-service
+    ports:
+      - "5002:5002"
+    environment:
+      - DB_HOST=mysql-appointments
+      - DB_USER=root
+      - DB_PASSWORD=secret
+      - JWT_SECRET_KEY=your-secret-key
+    depends_on:
+      - mysql-appointments
+    user: "1000:1000"
+    volumes:
+      - ./appointments-service:/app
+      - /app/__pycache__
+
+  barbers-service:
+    build: ./barbers-service
+    ports:
+      - "5003:5003"
+    environment:
+      - DB_HOST=mysql-barbers
+      - DB_USER=root
+      - DB_PASSWORD=secret
+      - JWT_SECRET_KEY=your-secret-key
+    depends_on:
+      - mysql-barbers
+    user: "1000:1000"
+    volumes:
+      - ./barbers-service:/app
+      - /app/__pycache__
+
+  products-service:
+    build: ./products-service
+    ports:
+      - "5004:5004"
+    environment:
+      - DB_HOST=mysql-products
+      - DB_USER=root
+      - DB_PASSWORD=secret
+      - JWT_SECRET_KEY=your-secret-key
+    depends_on:
+      - mysql-products
+    user: "1000:1000"
+    volumes:
+      - ./products-service:/app
+      - /app/__pycache__
+
+  frontend-service:
+    build: ./frontend-service
+    ports:
+      - "5005:5005"
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:5001
+      - APPOINTMENTS_SERVICE_URL=http://appointments-service:5002
+      - BARBERS_SERVICE_URL=http://barbers-service:5003
+      - PRODUCTS_SERVICE_URL=http://products-service:5004
+      - SESSION_SECRET=your-session-secret
+    volumes:
+      - ./frontend-service:/app
+      - /app/node_modules
+    depends_on:
+      - auth-service
+      - appointments-service
+      - barbers-service
+      - products-service
+
+  mysql-auth:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=auth_db
+    volumes:
+      - mysql-auth-data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  mysql-appointments:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=appointments_db
+    volumes:
+      - mysql-appointments-data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  mysql-barbers:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=barbers_db
+    volumes:
+      - mysql-barbers-data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  mysql-products:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=products_db
+    volumes:
+      - mysql-products-data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+volumes:
+  mysql-auth-data:
+  mysql-appointments-data:
+  mysql-barbers-data:
+  mysql-products-data:

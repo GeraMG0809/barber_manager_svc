@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Barbería Elegante - Login</title>
+        
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="/images/logo.png">
+        
+        <!-- custom css file link  -->
+        <link rel="stylesheet" href="/css/loginStyles.css">
+    </head>
+    
+<body>
+    <div class="container">
+        <!-- INICIO DE SESION -->
+        <div class="container-form">
+            <form class="sign-in" id="loginForm">
+                <h2>Iniciar sesión</h2>
+                <div class="social-networks">
+                    <ion-icon name="logo-facebook"></ion-icon>
+                    <ion-icon name="logo-instagram"></ion-icon>
+                    <ion-icon name="logo-twitter"></ion-icon>
+                </div>
+                <span>Ingresa tus credenciales para continuar</span>
+                <div class="container-input">
+                    <ion-icon name="mail-outline"></ion-icon>
+                    <input type="email" name="email" placeholder="Correo electrónico" required>
+                </div>
+                <div class="container-input">
+                    <ion-icon name="lock-closed-outline"></ion-icon>
+                    <input type="password" name="password" placeholder="Contraseña" required>
+                </div>
+                <a href="#">¿Olvidaste tu contraseña?</a>
+                <button type="submit" class="button">INICIAR SESIÓN</button>
+            </form>            
+        </div>
+        
+        <!-- REGISTRO -->
+        <div class="container-form">
+            <form class="sign-up" id="registerForm">
+                <h2>Crear cuenta</h2>
+                <div class="social-networks">
+                    <ion-icon name="logo-facebook"></ion-icon>
+                    <ion-icon name="logo-instagram"></ion-icon>
+                    <ion-icon name="logo-twitter"></ion-icon>
+                </div>
+                <span>Completa tus datos para registrarte</span>
+                <div class="container-input">
+                    <ion-icon name="person-outline"></ion-icon>
+                    <input type="text" name="nombre" placeholder="Nombre completo" required>
+                </div>
+                <div class="container-input">
+                    <ion-icon name="call-outline"></ion-icon>
+                    <input type="tel" name="telefono" placeholder="Teléfono" required>
+                </div>
+                <div class="container-input">
+                    <ion-icon name="mail-outline"></ion-icon>
+                    <input type="email" name="email" placeholder="Correo electrónico" required>
+                </div>
+                <div class="container-input">
+                    <ion-icon name="lock-closed-outline"></ion-icon>
+                    <input type="password" name="password" placeholder="Contraseña" required>
+                </div>
+                <button type="submit" class="button">REGISTRARSE</button>
+            </form>
+        </div>
+
+        <!-- PANEL DE BIENVENIDA -->
+        <div class="container-welcome">
+            <div class="welcome-sign-up welcome">
+                <h3>¡Bienvenido!</h3>
+                <p>Únete a nuestra comunidad y disfruta de los mejores servicios de barbería</p>
+                <button class="button" id="btn-sign-up">Crear cuenta</button>
+            </div>
+            <div class="welcome-sign-in welcome">
+                <h3>¡Hola de nuevo!</h3>
+                <p>Inicia sesión para acceder a tu cuenta y gestionar tus citas</p>
+                <button class="button" id="btn-sign-in">Iniciar sesión</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="/js/loginScript.js"></script>
+</body>
+</html>

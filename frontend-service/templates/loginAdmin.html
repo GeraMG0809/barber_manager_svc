@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Iniciar Sesión</title>
+  <style>
+    /* Estilos generales */
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Contenedor del formulario */
+    .login-container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      width: 320px;
+    }
+
+    /* Título del formulario */
+    .login-container h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #333;
+    }
+
+    /* Campos de entrada */
+    .login-container input[type="text"],
+    .login-container input[type="password"] {
+      width: 100%;
+      padding: 12px 15px;
+      margin: 10px 0 20px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    /* Botón de acceso */
+    .login-container button {
+      width: 100%;
+      padding: 12px;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .login-container button:hover {
+      background-color: #45a049;
+    }
+
+    /* Enlace de recuperación de contraseña */
+    .login-container .forgot-password {
+      display: block;
+      text-align: right;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #555;
+      text-decoration: none;
+    }
+
+    .login-container .forgot-password:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <h2>Iniciar Sesión</h2>
+    <form action="#" method="POST">
+      <input type="text" name="usuario" placeholder="Usuario" required>
+      <input type="password" name="contraseña" placeholder="Contraseña" required>
+      <button type="submit">Acceder</button>
+      <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+    </form>
+  </div>
+
+</body>
+</html>

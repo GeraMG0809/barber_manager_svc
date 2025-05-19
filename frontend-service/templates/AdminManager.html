@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Administrador de Barbería</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .card p { margin: 0.2rem 0; }
+  </style>
+</head>
+
+<body>
+  <header class="bg-dark text-white text-center py-3">
+    <div class="container">
+      <img src="{{ url_for('static', filename='imges/barberia.jpg') }}" 
+           alt="Imagen Barbería" class="img-fluid mb-2" style="max-height: 200px;">
+      <h1>Panel del Administrador</h1>
+    </div>
+  </header>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+      <a class="navbar-brand" href="#">Barbería</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('adminManager') }}">Citas</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('barber') }}">Barberos</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('productos') }}">Productos</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('reportes') }} ">Reportes</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container my-4">
+
+    <!-- Citas -->
+    <div class="section" id="citas">
+      <h2>Citas</h2>
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <select id="filtroBarbero" class="form-select">
+            <option value="">Todos los Barberos</option>
+            {% for barbero in barberos %}
+              <option value="{{ barbero.nombre }}">{{ barbero.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      
+        <div class="col-md-3">
+          <select id="filtroHora" class="form-select">
+            <option value="">Todas las Horas</option>
+            {% for hora in range(9, 22) %}
+              <option value="{{ "%02d:00" % hora }}">{{ "%02d:00" % hora }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      
+        <div class="col-md-3">
+          <input type="date" class="form-control" id="filtroFecha" />
+        </div>
+      
+        <div class="col-md-3">
+          <button id="limpiarFiltros" class="btn btn-secondary w-100">Limpiar Filtros</button>
+        </div>
+      </div>
+      
+      <div class="row" id="contenedorCitas">
+        {% for cita in citas %}
+        <div class="col-md-4 cita-card" 
+            data-barbero="{{ cita.barbero }}" 
+            data-hora="{{ cita.hora }}" 
+            data-fecha="{{ cita.fecha }}">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Cliente: {{ cita.cliente }}</h5>
+              <p>Fecha: {{ cita.fecha }}</p>
+              <p>Hora: {{ cita.hora }}</p>
+              <p>Barbero: {{ cita.barbero }}</p>
+              <p>Servicio: {{ cita.servicio }}</p>
+              <p>Monto: ${{ cita.precio }}</p>
+
+              <!-- Selector de estado -->
+              <div class="mb-2">
+                <label for="estado-{{ loop.index }}">Estado:</label>
+                <select class="form-select" id="estado-{{ loop.index }}">
+                  <option {% if cita.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                  <option {% if cita.estado == 'En curso' %}selected{% endif %}>En curso</option>
+                </select>
+              </div>
+
+              <!-- Botón Finalizar -->
+              <button 
+                class="btn btn-success btn-finalizar" 
+                data-bs-toggle="modal" 
+                data-bs-target="#modalPago"
+                data-cliente="{{ cita.cliente }}"
+                data-idcita ="{{ cita.id_cita }}"
+                data-barbero="{{ cita.barbero }}"
+                data-servicio="{{ cita.servicio }}"
+                data-monto="{{ cita.precio }}">
+              Finalizar
+            </button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Mensaje si no hay resultados -->
+      <div id="mensajeNoResultados" class="text-center text-muted mt-4" style="display: none;">
+        No se encontraron citas con esos filtros.
+      </div>
+
+    </div>
+
+  </div>
+
+<!-- Modal de Pago -->
+<div class="modal fade" id="modalPago" tabindex="-1" aria-labelledby="modalPagoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Pago de Cita</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Cliente:</strong> <span id="modalCliente"></span></p>
+        <p><strong>Barbero:</strong> <span id="modalBarbero"></span></p>
+        <p><strong>Servicio:</strong> <span id="modalServicio"></span></p>
+        <p><strong>Monto del servicio:</strong> $<span id="modalMonto"></span></p>
+
+        <!-- Selector de Productos -->
+        <div class="mb-3">
+          <label for="selectorProductos" class="form-label">Agregar Producto</label>
+          <select class="form-select" id="selectorProductos" required>
+            <option value="">Seleccione un producto</option>
+            {% for producto in productos %}
+            <option value="{{ producto.id_producto }}" data-precio="{{ producto.precio }}">
+              {{ producto.nombre_producto }} - ${{ producto.precio }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Precio del Producto -->
+        <p><strong>Precio del producto:</strong> $<span id="precioProducto">0.00</span></p>
+        
+        <!-- Monto Final -->
+        <p><strong>Monto final a pagar:</strong> $<span id="montoFinal"></span></p>
+
+        <!-- Método de Pago -->
+        <div class="mb-3">
+          <label for="metodoPago" class="form-label">Método de pago</label>
+          <select class="form-select" id="metodoPago" required>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Tarjeta">Tarjeta</option>
+          </select>
+        </div>
+        </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btnConfirmarPago">Confirmar</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static' ,filename='../static/js/adminManager.js') }}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      configModal();
+      filtroCitas();
+    });
+  </script>
+</body>
+</html>
