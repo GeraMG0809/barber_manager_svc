@@ -175,14 +175,11 @@
 <!-- shop section starts  -->
 
 <section class="shop" id="shop">
-
     <div class="heading">
         <h1>Productos</h1>
         <p>¡Adquiere tus productos en tienda ya!</p>
     </div>
-
     <div class="swiper products-slider">
-
         <div class="swiper-wrapper">
             {% for producto in productos %}
             <div class="swiper-slide slide">
@@ -204,13 +201,9 @@
             </div>
             {% endfor %}
         </div>
-        
-
         <div class="swiper-button-next"></div>
         <div class="swiper-button-prev"></div>
-
     </div>
-
 </section>
 
 <!-- shop section ends -->
@@ -240,17 +233,15 @@
 <!-- barbers section starts  -->
 
 <section class="team" id="team">
-
     <div class="heading">
         <h1>Barberos</h1>
         <p>En barbería elegante contamos con los mejores barberos de la zona, ven y conocelos</p>
     </div>
-
     <div class="box-container">
         {% for barbero in barberos %}
         <div class="box">
             <div class="image">
-                <img src="{{ url_for('static', filename='images/' ~ barbero.imagenes) }}"alt="">
+                <img src="{{ url_for('static', filename='images/' ~ barbero.imagenes) }}" alt="">
                 <div class="share">
                     <a href="#" class="fab fa-facebook-f"></a>
                     <a href="#" class="fab fa-twitter"></a>
@@ -259,14 +250,12 @@
                 </div>
             </div>
             <div class="content">
-                <h3> {{barbero.nombre}} </h3>
+                <h3>{{ barbero.nombre }}</h3>
                 <p>Experto en barbas</p>
             </div>
         </div>
         {% endfor %}
-
     </div>
-
 </section>
 
 <!-- barbers section ends -->

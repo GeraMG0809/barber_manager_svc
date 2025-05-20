@@ -7,6 +7,8 @@ from mysql.connector import Error
 import bcrypt
 from datetime import timedelta
 import logging
+import time
+import requests
 
 # Configurar logging
 logging.basicConfig(level=logging.DEBUG)
@@ -36,30 +38,52 @@ def get_db_connection():
 
 def init_db():
     logger.info("Inicializando la base de datos...")
-    conn = get_db_connection()
-    if conn:
-        try:
-            cursor = conn.cursor()
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS users (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    name VARCHAR(100) NOT NULL,
-                    email VARCHAR(100) UNIQUE NOT NULL,
-                    password VARCHAR(255) NOT NULL,
-                    phone VARCHAR(20),
-                    role ENUM('user', 'admin', 'barber') DEFAULT 'user',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            ''')
-            conn.commit()
-            logger.info("Tabla users creada o verificada exitosamente")
-        except Error as e:
-            logger.error(f"Error creando tabla: {e}")
-        finally:
-            cursor.close()
-            conn.close()
-    else:
-        logger.error("No se pudo inicializar la base de datos")
+    max_retries = 5
+    retry_delay = 5  # segundos
+    
+    for attempt in range(max_retries):
+        conn = get_db_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS users (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        email VARCHAR(100) UNIQUE NOT NULL,
+                        password VARCHAR(255) NOT NULL,
+                        phone VARCHAR(20),
+                        role ENUM('user', 'admin', 'barber') DEFAULT 'user',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                ''')
+                
+                # Insertar usuario admin de ejemplo si la tabla está vacía
+                cursor.execute("SELECT COUNT(*) FROM users")
+                if cursor.fetchone()[0] == 0:
+                    admin_password = bcrypt.hashpw('admin123'.encode('utf-8'), bcrypt.gensalt())
+                    cursor.execute("""
+                        INSERT INTO users (name, email, password, phone, role) VALUES 
+                        ('Admin', 'admin@barber.com', %s, '1234567890', 'admin')
+                    """, (admin_password.decode('utf-8'),))
+                
+                conn.commit()
+                logger.info("Base de datos inicializada correctamente")
+                return True
+            except Error as e:
+                logger.error(f"Error creando tabla: {e}")
+            finally:
+                cursor.close()
+                conn.close()
+        else:
+            logger.warning(f"Intento {attempt + 1} de {max_retries} fallido. Reintentando en {retry_delay} segundos...")
+            time.sleep(retry_delay)
+    
+    logger.error("No se pudo inicializar la base de datos después de varios intentos")
+    return False
+
+# Inicializar la base de datos al arrancar la aplicación
+init_db()
 
 @app.route('/auth/register', methods=['POST'])
 def register():
@@ -103,6 +127,25 @@ def register():
         conn.commit()
         user_id = cursor.lastrowid
         logger.info(f"Usuario registrado exitosamente con ID: {user_id}")
+        
+        # Si el usuario es un barbero, crear el registro en el servicio de barberos
+        if data.get('role') == 'barber':
+            try:
+                barber_data = {
+                    'name': data['name'],
+                    'email': data['email'],
+                    'phone': data['phone']
+                }
+                response = requests.post(
+                    f"{os.getenv('BARBER_SERVICE_URL', 'http://barbers-service:5002')}/barbers",
+                    json=barber_data
+                )
+                if response.status_code != 201:
+                    logger.error(f"Error creando barbero en el servicio de barberos: {response.text}")
+                    # No revertimos el registro del usuario, pero registramos el error
+            except Exception as e:
+                logger.error(f"Error comunicándose con el servicio de barberos: {e}")
+                # No revertimos el registro del usuario, pero registramos el error
         
         # Crear token de acceso
         access_token = create_access_token(
@@ -257,6 +300,5 @@ def update_profile():
 
 if __name__ == '__main__':
     logger.info("Iniciando servicio de autenticación...")
-    init_db()
     logger.info("Servicio de autenticación iniciado en puerto 5001")
     app.run(host='0.0.0.0', port=5001, debug=True) 

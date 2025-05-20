@@ -14,35 +14,40 @@ body{
     align-items: center;
     min-height: 100vh;
     background: linear-gradient(135deg, #f6f5f7 0%, #e8e8e8 100%);
+    padding: 20px;
 }
 
 .container{
     position: relative;
-    width: 900px;
-    max-width: 100%;
+    width: 100%;
+    max-width: 900px;
     min-height: 600px;
     background: #fff;
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    display: flex;
 }
 
 .container-form{
-    position: absolute;
-    top: 0;
+    position: relative;
+    width: 50%;
     height: 100%;
     transition: all 0.6s ease-in-out;
+    padding: 40px;
 }
 
 .sign-in{
+    position: absolute;
     left: 0;
-    width: 50%;
+    width: 100%;
     z-index: 2;
 }
 
 .sign-up{
+    position: absolute;
     left: 0;
-    width: 50%;
+    width: 100%;
     opacity: 0;
     z-index: 1;
 }
@@ -58,9 +63,7 @@ body{
 }
 
 .container-welcome{
-    position: absolute;
-    top: 0;
-    right: 0;
+    position: relative;
     width: 50%;
     height: 100%;
     overflow: hidden;
@@ -77,6 +80,12 @@ body{
     width: 200%;
     transform: translateX(0);
     transition: transform 0.6s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
 }
 
 .container.active .welcome{
@@ -106,7 +115,7 @@ form{
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    padding: 0 50px;
+    padding: 20px;
     height: 100%;
     text-align: center;
 }
@@ -148,6 +157,7 @@ span{
     font-size: 14px;
     margin-bottom: 20px;
     color: #666;
+    display: block;
 }
 
 .container-input{
@@ -188,6 +198,7 @@ a{
     text-decoration: none;
     margin: 15px 0;
     transition: color 0.3s ease;
+    display: inline-block;
 }
 
 a:hover {
@@ -207,6 +218,8 @@ a:hover {
     transition: all 0.3s ease;
     cursor: pointer;
     margin-top: 10px;
+    width: auto;
+    min-width: 200px;
 }
 
 .button:hover {
@@ -220,15 +233,6 @@ a:hover {
 
 .button:focus{
     outline: none;
-}
-
-.welcome{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 0 40px;
 }
 
 .welcome h3{
@@ -248,37 +252,38 @@ a:hover {
 
 .welcome .button{
     background: transparent;
-    border: 2px solid #FFFFFF;
-    padding: 12px 45px;
+    border: 2px solid #fff;
 }
 
 .welcome .button:hover {
     background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
 }
 
 @media (max-width: 768px) {
     .container {
-        width: 100%;
-        min-height: 100vh;
-        border-radius: 0;
+        flex-direction: column;
+        min-height: auto;
     }
-    
-    .container-form {
-        width: 100%;
-    }
-    
+
+    .container-form,
     .container-welcome {
-        display: none;
+        width: 100%;
+        height: auto;
     }
-    
-    .sign-in, .sign-up {
+
+    .sign-in,
+    .sign-up {
+        position: relative;
         width: 100%;
     }
-    
+
     .container.active .sign-in,
     .container.active .sign-up {
-        transform: translateX(0);
+        transform: none;
+    }
+
+    .welcome {
+        display: none;
     }
 }
 
