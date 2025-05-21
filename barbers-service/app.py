@@ -39,15 +39,18 @@ def init_db():
         if conn:
             try:
                 cursor = conn.cursor()
+                # Eliminar tablas existentes
+                cursor.execute("DROP TABLE IF EXISTS barber_schedules")
+                cursor.execute("DROP TABLE IF EXISTS barbers")
+                
                 # Tabla de barberos
                 cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS barbers (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        name VARCHAR(100) NOT NULL,
-                        email VARCHAR(100) UNIQUE NOT NULL,
-                        phone VARCHAR(20),
-                        status ENUM('active', 'inactive') DEFAULT 'active',
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    CREATE TABLE barbers (
+                        id_barbero INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                        nombre_barbero VARCHAR(25) NOT NULL,
+                        telefono VARCHAR(12) NOT NULL,
+                        imagenes VARCHAR(100) NOT NULL,
+                        estado ENUM('ACTIVO', 'INACTIVO') NOT NULL DEFAULT 'ACTIVO'
                     )
                 ''')
                 
@@ -65,24 +68,42 @@ def init_db():
                 
                 # Tabla de horarios de barberos
                 cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS barber_schedules (
+                    CREATE TABLE barber_schedules (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         barber_id INT NOT NULL,
                         day_of_week INT NOT NULL, -- 0 = Lunes, 6 = Domingo
                         start_time TIME NOT NULL,
                         end_time TIME NOT NULL,
-                        FOREIGN KEY (barber_id) REFERENCES barbers(id)
+                        FOREIGN KEY (barber_id) REFERENCES barbers(id_barbero)
                     )
                 ''')
                 
-                # Insertar datos de ejemplo si las tablas están vacías
-                cursor.execute("SELECT COUNT(*) FROM barbers")
-                if cursor.fetchone()[0] == 0:
+                # Insertar datos de ejemplo
+                cursor.execute("""
+                    INSERT INTO barbers (nombre_barbero, telefono, imagenes) VALUES 
+                    ('Juan Perez', '1234567890', 'team-1.png'),
+                    ('Mario Gomez', '0987654321', 'team-2.png'),
+                    ('Carlos Rodriguez', '5555555555', 'team-3.png')
+                """)
+                
+                # Obtener los IDs de los barberos
+                cursor.execute("SELECT id_barbero FROM barbers")
+                barber_ids = [row[0] for row in cursor.fetchall()]
+                
+                # Insertar horarios para cada barbero
+                for barber_id in barber_ids:
+                    # Horario de lunes a viernes (0-4)
+                    for day in range(5):
+                        cursor.execute("""
+                            INSERT INTO barber_schedules (barber_id, day_of_week, start_time, end_time)
+                            VALUES (%s, %s, '09:00:00', '18:00:00')
+                        """, (barber_id, day))
+                    
+                    # Horario de sábado (5)
                     cursor.execute("""
-                        INSERT INTO barbers (name, email, phone) VALUES 
-                        ('Juan Pérez', 'juan@barber.com', '1234567890'),
-                        ('María García', 'maria@barber.com', '0987654321')
-                    """)
+                        INSERT INTO barber_schedules (barber_id, day_of_week, start_time, end_time)
+                        VALUES (%s, 5, '09:00:00', '14:00:00')
+                    """, (barber_id,))
                 
                 cursor.execute("SELECT COUNT(*) FROM services")
                 if cursor.fetchone()[0] == 0:
@@ -113,15 +134,31 @@ init_db()
 
 @app.route('/barbers', methods=['GET'])
 def get_barbers():
+    logger.info("Recibida petición GET /barbers")
     conn = get_db_connection()
     if not conn:
         return jsonify({"error": "Error de conexión a la base de datos"}), 500
 
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM barbers WHERE status = 'active'")
+        logger.info("Ejecutando consulta para obtener barberos")
+        cursor.execute("""
+            SELECT 
+                id_barbero as id,
+                nombre_barbero as nombre,
+                telefono,
+                imagenes,
+                estado
+            FROM barbers 
+            WHERE estado = 'ACTIVO'
+        """)
         barbers = cursor.fetchall()
-        return jsonify(barbers), 200
+        logger.info(f"Barberos encontrados: {len(barbers)}")
+        
+        for barber in barbers:
+            logger.debug(f"Barbero procesado: {barber}")
+            
+        return jsonify({"data": barbers}), 200
     except Error as e:
         logger.error(f"Error obteniendo barberos: {e}")
         return jsonify({"error": "Error al obtener barberos"}), 500
@@ -144,18 +181,18 @@ def create_barber():
         cursor = conn.cursor()
         
         # Verificar si el email ya existe
-        cursor.execute("SELECT id FROM barbers WHERE email = %s", (data['email'],))
+        cursor.execute("SELECT id_barbero FROM barbers WHERE telefono = %s", (data['phone'],))
         if cursor.fetchone():
-            return jsonify({"error": "El email ya está registrado"}), 400
+            return jsonify({"error": "El teléfono ya está registrado"}), 400
 
         # Insertar nuevo barbero
         cursor.execute("""
-            INSERT INTO barbers (name, email, phone)
+            INSERT INTO barbers (nombre_barbero, telefono, imagenes)
             VALUES (%s, %s, %s)
         """, (
             data['name'],
-            data['email'],
-            data['phone']
+            data['phone'],
+            data['imagen']
         ))
         
         conn.commit()
@@ -174,7 +211,6 @@ def create_barber():
         conn.close()
 
 @app.route('/barbers/<int:barber_id>/schedule', methods=['GET'])
-@jwt_required()
 def get_barber_schedule(barber_id):
     conn = get_db_connection()
     if not conn:
@@ -183,9 +219,9 @@ def get_barber_schedule(barber_id):
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
-            SELECT * FROM barber_schedules 
-            WHERE barber_id = %s 
-            ORDER BY day_of_week, start_time
+            SELECT day_of_week, start_time, end_time
+            FROM barber_schedules
+            WHERE barber_id = %s
         """, (barber_id,))
         schedule = cursor.fetchall()
         return jsonify(schedule), 200

@@ -69,7 +69,7 @@
 
     <div class="slide active">
         <div class="content">
-            <img src="/images/content-img-1.png" alt="">
+            <img src="/static/images/content-img-1.png" alt="">
             <span>Lo mejor sólo en Barbería Elegante</span>
             <h3>cortes de cabello</h3>
             <a href="#reservar" class="btn">reservar cita</a>
@@ -79,13 +79,13 @@
             </div>
         </div>
         <div class="image">
-            <img src="/images/home-img-1.png" alt="">
+            <img src="/static/images/home-img-1.png" alt="">
         </div>
     </div>
 
     <div class="slide">
         <div class="content">
-            <img src="/images/content-img-2.png" alt="">
+            <img src="/static/images/content-img-2.png" alt="">
             <span>Lo mejor sólo en Barbería Elegante</span>
             <h3>afeitados</h3>
             <a href="#reservar" class="btn">reservar cita</a>
@@ -95,13 +95,13 @@
             </div>
         </div>
         <div class="image">
-            <img src="/images/home-img-2.png" alt="">
+            <img src="/static/images/home-img-2.png" alt="">
         </div>
     </div>
 
     <div class="slide">
         <div class="content">
-            <img src="/images/content-img-3.png" alt="">
+            <img src="/static/images/content-img-3.png" alt="">
             <span>Lo mejor sólo en Barbería Elegante</span>
             <h3>skin care</h3>
             <a href="#reservar" class="btn">reservar cita</a>
@@ -111,7 +111,7 @@
             </div>
         </div>
         <div class="image">
-            <img src="/images/home-img-3.png" alt="">
+            <img src="/static/images/home-img-3.png" alt="">
         </div>
     </div>
 
@@ -124,32 +124,32 @@
 <section class="category">
 
     <a href="#" class="box">
-        <img src="{{ url_for('static', filename='images/cera.png') }}" alt="">
+        <img src="/static/images/cera.png" alt="">
         <p>Cera para cabello</p>
     </a>
 
     <a href="#" class="box">
-        <img src="{{ url_for('static', filename='images/aceite.png') }}" alt="">
+        <img src="/static/images/aceite.png" alt="">
         <p>Aceite para barba</p>
     </a>
 
     <a href="#" class="box">
-        <img src="{{ url_for('static', filename='images/aftershave.png') }}" alt="">
+        <img src="/static/images/aftershave.png" alt="">
         <p>Aftershave</p>
     </a>
 
     <a href="#" class="box">
-        <img src="{{ url_for('static', filename='images/navajas.png') }}" alt="">
+        <img src="/static/images/navajas.png" alt="">
         <p>Navajas y rastrillos</p>
     </a>
 
     <a href="#" class="box">
-        <img src="{{ url_for('static', filename='images/espuma.png') }}" alt="">
+        <img src="/static/images/espuma.png" alt="">
         <p>Espuma de afeitar</p>
     </a>
 
     <a href="#" class="box">
-        <img src="{{ url_for('static', filename='images/colonia.png') }}" alt="">
+        <img src="/static/images/colonia.png" alt="">
         <p>Colonia</p>
     </a>
 
@@ -185,7 +185,7 @@
             <div class="swiper-slide slide">
                 <div class="image">
                     <span class="discount">-25%</span>
-                    <img src="{{ url_for('static', filename='images/' + producto.imagen_producto) }}" alt="">
+                    <img src="/static/images/{{ producto.imagen_producto }}" alt="">
                 </div>
                 <div class="content">
                     <div class="stars">
@@ -238,10 +238,9 @@
         <p>En barbería elegante contamos con los mejores barberos de la zona, ven y conocelos</p>
     </div>
     <div class="box-container">
-        {% for barbero in barberos %}
         <div class="box">
             <div class="image">
-                <img src="{{ url_for('static', filename='images/' ~ barbero.imagenes) }}" alt="">
+                <img src="/static/images/barber-1.jpg" alt="Barbero 1">
                 <div class="share">
                     <a href="#" class="fab fa-facebook-f"></a>
                     <a href="#" class="fab fa-twitter"></a>
@@ -250,11 +249,42 @@
                 </div>
             </div>
             <div class="content">
-                <h3>{{ barbero.nombre }}</h3>
+                <h3>Juan Pérez</h3>
                 <p>Experto en barbas</p>
             </div>
         </div>
-        {% endfor %}
+
+        <div class="box">
+            <div class="image">
+                <img src="/static/images/barber-2.jpg" alt="Barbero 2">
+                <div class="share">
+                    <a href="#" class="fab fa-facebook-f"></a>
+                    <a href="#" class="fab fa-twitter"></a>
+                    <a href="#" class="fab fa-instagram"></a>
+                    <a href="#" class="fab fa-linkedin"></a>
+                </div>
+            </div>
+            <div class="content">
+                <h3>Carlos Rodríguez</h3>
+                <p>Especialista en cortes modernos</p>
+            </div>
+        </div>
+
+        <div class="box">
+            <div class="image">
+                <img src="/static/images/barber-3.jpg" alt="Barbero 3">
+                <div class="share">
+                    <a href="#" class="fab fa-facebook-f"></a>
+                    <a href="#" class="fab fa-twitter"></a>
+                    <a href="#" class="fab fa-instagram"></a>
+                    <a href="#" class="fab fa-linkedin"></a>
+                </div>
+            </div>
+            <div class="content">
+                <h3>Miguel Sánchez</h3>
+                <p>Maestro en afeitados clásicos</p>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -486,7 +516,7 @@
           <div class="card bg-light shadow">
             <div class="card-body p-4">
               <h2 class="text-center mb-4 fw-bold" style="color: #26355D;">Reserva tu cita</h2>
-              <form id="bookingForm"  method="POST">
+              <form id="bookingForm" method="POST">
                 <input type="hidden" name="form_id" value="bookingForm">  
                 <div class="mb-3">
                   <label for="name" class="form-label">Nombre</label>
@@ -501,19 +531,23 @@
                   <input type="date" name="fecha" class="form-control" id="date" required>
                 </div>
                 <div class="mb-3">
-                    <label for="barber" class="form-label">Barbero</label>
-                    <select class="form-select" name="barbero" id="barber" required>
-                      <option value="" selected disabled>Selecciona un barbero</option>
-                      {% for barbero in barberos %}
-                      <option value="{{ barbero.nombre }}">{{ barbero.nombre }}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
+                  <label for="barber" class="form-label">Barbero</label>
+                  <select class="form-select" name="barbero" id="barber" required>
+                    <option value="" selected disabled>Selecciona un barbero</option>
+                    {% if barberos and barberos|length > 0 %}
+                        {% for barbero in barberos %}
+                            <option value="{{ barbero.id or barbero._id }}">{{ barbero.nombre or 'Barbero' }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="" disabled>No hay barberos disponibles</option>
+                    {% endif %}
+                  </select>
+                </div>
                 <div class="mb-3">
                   <label for="time" class="form-label">Hora</label>
                   <select name="hora" id="time" class="form-select" required>
                     <option value="" selected disabled>Selecciona un horario</option>
-                </select>                
+                  </select>                
                 </div>
                 <div class="mb-3">
                   <label for="service" class="form-label">Servicio</label>
@@ -531,7 +565,7 @@
         </div>
       </div>
     </div>
-  </section>
+</section>
 
 <!-- reservation section ends -->
 

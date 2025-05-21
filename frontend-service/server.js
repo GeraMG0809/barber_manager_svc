@@ -9,11 +9,12 @@ const app = express();
 const PORT = process.env.PORT || 5005;
 
 // Configuración de las rutas de los servicios
+const API_URL = process.env.API_URL || 'http://api-gateway:5000';
 const SERVICES = {
-  auth: process.env.AUTH_SERVICE_URL || 'http://auth-service:5001',
-  appointments: process.env.APPOINTMENTS_SERVICE_URL || 'http://appointments-service:5002',
-  barbers: process.env.BARBERS_SERVICE_URL || 'http://barbers-service:5003',
-  products: process.env.PRODUCTS_SERVICE_URL || 'http://products-service:5004'
+  auth: `${API_URL}/api/auth`,
+  appointments: `${API_URL}/api/appointments`,
+  barbers: `${API_URL}/api/barbers`,
+  products: `${API_URL}/api/products`
 };
 
 // Configuración de CORS
@@ -28,11 +29,12 @@ app.use(express.urlencoded({ extended: true }));
 // Configuración de sesión
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
+  resave: true,
+  saveUninitialized: true,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24 horas
+    maxAge: 24 * 60 * 60 * 1000, // 24 horas
+    httpOnly: true
   }
 }));
 
@@ -59,16 +61,21 @@ app.use((req, res, next) => {
 
 // Middleware para verificar autenticación
 const verifyToken = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1] || req.session?.token;
+  console.log('Sesión actual:', req.session);
+  const token = req.session?.token;
+  
   if (!token) {
+    console.log('No hay token en la sesión');
     return res.status(401).json({ error: 'Token no proporcionado' });
   }
 
   try {
+    console.log('Verificando token:', token);
     const response = await axios.post(`${SERVICES.auth}/auth/verify`, { token });
     req.user = response.data;
     next();
   } catch (error) {
+    console.error('Error verificando token:', error.response?.data || error.message);
     res.status(401).json({ error: 'Token inválido' });
   }
 };
@@ -84,18 +91,36 @@ const isAdmin = (req, res, next) => {
 // Rutas principales
 app.get('/', async (req, res) => {
   try {
-    const [barberos, productos] = await Promise.all([
-      axios.get(`${SERVICES.barbers}/barbers`),
-      axios.get(`${SERVICES.products}/products`)
-    ]);
+    console.log('Intentando obtener barberos de:', `${SERVICES.barbers}`);
+    const barberosResponse = await axios.get(`${SERVICES.barbers}`);
+    console.log('Respuesta de barberos:', barberosResponse.data);
+    
+    const productosResponse = await axios.get(`${SERVICES.products}`);
+    console.log('Respuesta de productos:', productosResponse.data);
+
+    // Asegurarnos de que barberos sea siempre un array
+    const barberos = Array.isArray(barberosResponse.data) 
+      ? barberosResponse.data 
+      : (barberosResponse.data.data || []);
+
     res.render('index', {
-      barberos: barberos.data,
-      productos: productos.data,
-      user: req.session.user
+      barberos: barberos,
+      productos: productosResponse.data || [],
+      user: req.session.user || null,
+      error: null
     });
   } catch (error) {
-    console.error('Error:', error);
-    res.render('index', { barberos: [], productos: [], user: null });
+    console.error('Error detallado:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    res.render('index', { 
+      barberos: [], 
+      productos: [], 
+      user: null,
+      error: 'Error al cargar los datos'
+    });
   }
 });
 
@@ -133,10 +158,23 @@ app.get('/venta', verifyToken, (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const response = await axios.post(`${SERVICES.auth}/auth/login`, req.body);
+    console.log('Respuesta de login:', response.data);
+    
+    // Guardar en la sesión
     req.session.user = response.data.user;
     req.session.token = response.data.access_token;
-    res.json(response.data);
+    
+    // Guardar cambios en la sesión
+    req.session.save((err) => {
+      if (err) {
+        console.error('Error guardando sesión:', err);
+        return res.status(500).json({ error: 'Error al iniciar sesión' });
+      }
+      console.log('Sesión guardada:', req.session);
+      res.json(response.data);
+    });
   } catch (error) {
+    console.error('Error en login:', error.response?.data || error.message);
     res.status(error.response?.status || 500).json(error.response?.data || { error: 'Error interno del servidor' });
   }
 });
@@ -157,7 +195,28 @@ app.get('/api/auth/logout', (req, res) => {
   res.json({ message: 'Sesión cerrada exitosamente' });
 });
 
-// API Proxy para citas
+// API Proxy para barberos
+app.get('/api/barbers', async (req, res) => {
+  try {
+    console.log('Obteniendo barberos de:', `${SERVICES.barbers}`);
+    const response = await axios.get(`${SERVICES.barbers}`);
+    console.log('Respuesta de barberos:', response.data);
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error obteniendo barberos:', error.response?.data || error.message);
+    res.status(error.response?.status || 500).json({ error: 'Error al obtener barberos' });
+  }
+});
+
+app.get('/api/barbers/:id/schedule', async (req, res) => {
+  try {
+    const response = await axios.get(`${SERVICES.barbers}/${req.params.id}/schedule`);
+    res.json(response.data);
+  } catch (error) {
+    res.status(error.response?.status || 500).json({ error: 'Error al obtener horario' });
+  }
+});
+
 app.get('/api/appointments/available', async (req, res) => {
   try {
     const { date, barber } = req.query;

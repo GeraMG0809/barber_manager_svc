@@ -16,7 +16,7 @@ app = Flask(__name__,
 # Configurar CORS para permitir peticiones desde el frontend
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://localhost:5005"],
+        "origins": ["http://localhost:5005", "http://frontend:5005"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
@@ -69,14 +69,18 @@ def forward_request(service, path, method, data=None):
         else:
             response = requests.request(method, url, headers=headers)
             
-        return response.json(), response.status_code
+        try:
+            response_data = response.json()
+            return jsonify(response_data), response.status_code
+        except ValueError:
+            return jsonify({'error': 'Error al procesar la respuesta del servicio'}), 500
     except requests.exceptions.RequestException as e:
         return jsonify({'error': str(e)}), 500
 
 # Rutas de autenticación (no requieren token)
 @app.route('/api/auth/<path:path>', methods=['POST', 'GET', 'PUT'])
 def auth_routes(path):
-    return forward_request('auth', f'/auth/{path}', request.method, request.get_json())
+    return forward_request('auth', f'/{path}', request.method, request.get_json())
 
 # Rutas de citas (requieren token)
 @app.route('/api/appointments/<path:path>', methods=['POST', 'GET', 'PUT', 'DELETE'])
@@ -84,15 +88,21 @@ def auth_routes(path):
 def appointments_routes(path):
     return forward_request('appointments', f'/appointments/{path}', request.method, request.get_json())
 
-# Rutas de barberos (requieren token)
+# Rutas de barberos (públicas)
 @app.route('/api/barbers', methods=['GET'])
-@token_required
 def get_barbers():
-    return forward_request('barbers', '/barbers', request.method, request.get_json())
+    return forward_request('barbers', '/barbers', request.method)
 
+@app.route('/api/barbers/<path:path>', methods=['GET'])
+def get_barber_routes(path):
+    if path.endswith('/schedule'):
+        return forward_request('barbers', f'/barbers/{path}', request.method)
+    return jsonify({'error': 'Ruta no encontrada'}), 404
+
+# Rutas de barberos (protegidas)
 @app.route('/api/barbers/<path:path>', methods=['POST', 'PUT', 'DELETE'])
 @token_required
-def barbers_routes(path):
+def barbers_protected_routes(path):
     return forward_request('barbers', f'/barbers/{path}', request.method, request.get_json())
 
 # Rutas de productos (requieren token)
@@ -109,7 +119,19 @@ def health_check():
 # Rutas del frontend
 @app.route('/')
 def index():
-    return render_template('index.html')
+    try:
+        # Obtener los barberos del servicio de barberos
+        response = requests.get(f"{SERVICES['barbers']}/barbers")
+        if response.ok:
+            barberos = response.json().get('data', [])
+        else:
+            barberos = []
+            print(f"Error obteniendo barberos: {response.status_code}")
+    except Exception as e:
+        print(f"Error conectando con el servicio de barberos: {e}")
+        barberos = []
+    
+    return render_template('index.html', barberos=barberos)
 
 @app.route('/login')
 def login():

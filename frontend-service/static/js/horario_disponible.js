@@ -4,49 +4,64 @@ document.addEventListener('DOMContentLoaded', function() {
     const barberSelect = document.getElementById('barber');
     const bookingForm = document.getElementById('bookingForm');
 
-    // Generar horarios disponibles (de 9 AM a 6 PM)
-    function generateTimeSlots() {
-        const slots = [];
-        for (let hour = 9; hour <= 18; hour++) {
-            const time = `${hour.toString().padStart(2, '0')}:00`;
-            slots.push(time);
+    // Establecer la fecha mínima como hoy
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+
+    // Función para cargar y mostrar los barberos disponibles
+    async function loadBarbers() {
+        try {
+            const response = await fetch('/api/barbers');
+            if (!response.ok) {
+                throw new Error('Error al obtener barberos');
+            }
+            const data = await response.json();
+            console.log('Barberos disponibles:', data);
+            
+            // Limpiar el select de barberos
+            barberSelect.innerHTML = '<option value="" selected disabled>Selecciona un barbero</option>';
+            
+            // Agregar los barberos al select
+            data.data.forEach(barber => {
+                const option = document.createElement('option');
+                option.value = barber.id;
+                option.textContent = barber.nombre;
+                barberSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            barberSelect.innerHTML = '<option value="" selected disabled>Error al cargar barberos</option>';
         }
-        return slots;
     }
 
-    // Actualizar horarios disponibles
-    async function updateAvailableTimes() {
-        const date = dateInput.value;
-        const barber = barberSelect.value;
+    // Cargar barberos al iniciar
+    loadBarbers();
 
-        if (!date || !barber) {
+    // Actualizar horarios disponibles
+    function updateAvailableTimes() {
+        const date = dateInput.value;
+        const barberId = barberSelect.value;
+
+        if (!date || !barberId) {
             timeSelect.innerHTML = '<option value="" selected disabled>Selecciona un horario</option>';
             return;
         }
 
-        try {
-            // Obtener citas existentes para la fecha y barbero seleccionados
-            const response = await fetch(`/api/appointments/available?date=${date}&barber=${barber}`);
-            const bookedTimes = await response.json();
-
-            // Generar todos los horarios posibles
-            const allTimeSlots = generateTimeSlots();
-            
-            // Filtrar horarios disponibles
-            const availableSlots = allTimeSlots.filter(time => !bookedTimes.includes(time));
-
-            // Actualizar el select de horarios
-            timeSelect.innerHTML = '<option value="" selected disabled>Selecciona un horario</option>';
-            availableSlots.forEach(time => {
-                const option = document.createElement('option');
-                option.value = time;
-                option.textContent = time;
-                timeSelect.appendChild(option);
-            });
-        } catch (error) {
-            console.error('Error al obtener horarios disponibles:', error);
-            alert('Error al cargar los horarios disponibles');
+        // Generar slots de tiempo fijos de 10 AM a 8 PM
+        const slots = [];
+        for (let hour = 10; hour <= 20; hour++) {
+            const time = `${hour.toString().padStart(2, '0')}:00`;
+            slots.push(time);
         }
+
+        // Actualizar el select de horarios
+        timeSelect.innerHTML = '<option value="" selected disabled>Selecciona un horario</option>';
+        slots.forEach(time => {
+            const option = document.createElement('option');
+            option.value = time;
+            option.textContent = time;
+            timeSelect.appendChild(option);
+        });
     }
 
     // Event listeners para actualizar horarios
@@ -56,14 +71,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Manejar el envío del formulario de reserva
     bookingForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-
-        // Verificar si el usuario está autenticado
-        const token = localStorage.getItem('token');
-        if (!token) {
-            alert('Por favor, inicia sesión para reservar una cita');
-            window.location.href = '/login';
-            return;
-        }
 
         const formData = new FormData(bookingForm);
         const data = {
@@ -79,8 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch('/api/appointments', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(data)
             });
@@ -92,11 +98,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 bookingForm.reset();
                 timeSelect.innerHTML = '<option value="" selected disabled>Selecciona un horario</option>';
             } else {
-                alert(result.error || 'Error al reservar la cita');
+                throw new Error(result.error || 'Error al reservar la cita');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al conectar con el servidor');
+            alert(error.message || 'Error al conectar con el servidor');
         }
     });
 });

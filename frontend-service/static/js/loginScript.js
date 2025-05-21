@@ -67,7 +67,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (response.ok) {
                 // Guardar el token y datos del usuario
-                localStorage.setItem('token', result.token);
+                console.log('Respuesta del servidor:', result);
+                localStorage.setItem('token', result.access_token);
                 localStorage.setItem('user', JSON.stringify(result.user));
                 
                 // Mostrar mensaje de éxito
