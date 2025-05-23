@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appointments-service
+  namespace: barber
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: appointments-service
+  template:
+    metadata:
+      labels:
+        app: appointments-service
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+      - name: appointments-service
+        image: appointments-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5002
+        env:
+        - name: DB_HOST
+          value: mysql-appointments
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: barber-config
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: barber-config
+              key: DB_PASSWORD
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: barber-config
+              key: DB_NAME_APPOINTMENTS
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: appointments-service
+  namespace: barber
+spec:
+  selector:
+    app: appointments-service
+  ports:
+    - port: 5002
+      targetPort: 5002
+  type: ClusterIP 

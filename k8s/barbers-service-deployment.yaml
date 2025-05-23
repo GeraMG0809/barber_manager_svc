@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: barbers-service
+  namespace: barber
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: barbers-service
+  template:
+    metadata:
+      labels:
+        app: barbers-service
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+      - name: barbers-service
+        image: barbers-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5003
+        env:
+        - name: DB_HOST
+          value: mysql-barbers
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: barber-config
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: barber-config
+              key: DB_PASSWORD
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: barber-config
+              key: DB_NAME_BARBERS
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: barbers-service
+  namespace: barber
+spec:
+  selector:
+    app: barbers-service
+  ports:
+    - port: 5003
+      targetPort: 5003
+  type: ClusterIP 

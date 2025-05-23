@@ -39,6 +39,7 @@ app.use(session({
 }));
 
 // Middleware para servir archivos estáticos
+app.use('/static', express.static(path.join(__dirname, 'static')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/css', express.static(path.join(__dirname, 'static/css')));
 app.use('/js', express.static(path.join(__dirname, 'static/js')));

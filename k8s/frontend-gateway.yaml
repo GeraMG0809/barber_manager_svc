@@ -1,0 +1,55 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: barber-gateway
+  namespace: barber
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: frontend-vs
+  namespace: barber
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - barber-gateway
+  http:
+  - match:
+    - uri:
+        prefix: "/"
+    route:
+    - destination:
+        host: frontend.barber.svc.cluster.local
+        port:
+          number: 5005
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: api-gateway-vs
+  namespace: barber
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - barber-gateway
+  http:
+  - match:
+    - uri:
+        prefix: "/api"
+    route:
+    - destination:
+        host: api-gateway.barber.svc.cluster.local
+        port:
+          number: 5000 

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: barber-config
+  namespace: barber
+data:
+  NODE_ENV: development
+  PORT_FRONTEND: "5005"
+  API_URL: http://api-gateway:5000
+  AUTH_SERVICE_URL: http://auth-service:5001
+  APPOINTMENTS_SERVICE_URL: http://appointments-service:5002
+  BARBERS_SERVICE_URL: http://barbers-service:5003
+  PRODUCTS_SERVICE_URL: http://products-service:5004
+  DB_USER: root
+  DB_PASSWORD: secret
+  JWT_SECRET_KEY: your-super-secret-key-change-in-production
+  DB_NAME_AUTH: auth_db
+  DB_NAME_APPOINTMENTS: appointments_db
+  DB_NAME_BARBERS: barbers_db
+  DB_NAME_PRODUCTS: products_db 

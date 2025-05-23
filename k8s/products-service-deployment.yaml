@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products-service
+  namespace: barber
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: products-service
+  template:
+    metadata:
+      labels:
+        app: products-service
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+      - name: products-service
+        image: products-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5004
+        env:
+        - name: DB_HOST
+          value: mysql-products
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: barber-config
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: barber-config
+              key: DB_PASSWORD
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: barber-config
+              key: DB_NAME_PRODUCTS
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: products-service
+  namespace: barber
+spec:
+  selector:
+    app: products-service
+  ports:
+    - port: 5004
+      targetPort: 5004
+  type: ClusterIP 
