@@ -20,43 +20,6 @@ El sistema está compuesto por los siguientes microservicios:
 
 Todos los servicios se comunican a través de HTTP y están orquestados en Kubernetes. El tráfico externo entra por el Ingress Gateway de Istio.
 
-### Diagrama de Arquitectura
-
-```mermaid
-graph TD
-    FE[Frontend (Node.js)]
-    GW[API Gateway]
-    AUTH[Auth Service]
-    APPT[Appointments Service]
-    BARBERS[Barbers Service]
-    PRODUCTS[Products Service]
-    DBAUTH[(MySQL Auth)]
-    DBAPPT[(MySQL Appointments)]
-    DBBARBERS[(MySQL Barbers)]
-    DBPRODUCTS[(MySQL Products)]
-    ISTIO[Istio]
-    KIALI[Kiali]
-    PROM[Prometheus]
-
-    FE -->|HTTP| GW
-    GW -->|HTTP| AUTH
-    GW -->|HTTP| APPT
-    GW -->|HTTP| BARBERS
-    GW -->|HTTP| PRODUCTS
-    AUTH -->|SQL| DBAUTH
-    APPT -->|SQL| DBAPPT
-    BARBERS -->|SQL| DBBARBERS
-    PRODUCTS -->|SQL| DBPRODUCTS
-    FE --> ISTIO
-    GW --> ISTIO
-    AUTH --> ISTIO
-    APPT --> ISTIO
-    BARBERS --> ISTIO
-    PRODUCTS --> ISTIO
-    ISTIO --> PROM
-    ISTIO --> KIALI
-```
-
 ---
 
 ## Tecnologías Utilizadas
